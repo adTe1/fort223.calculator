@@ -1,0 +1,3063 @@
+Grammar
+
+    0 $accept: program "end of file"
+
+    1 program: body "end" subprograms
+
+    2 body: declarations statements
+
+    3 declarations: declarations type vars
+    4             | declarations "common" cblock_list
+    5             | declarations "data" vals
+    6             | ε
+
+    7 type: "int"
+    8     | "real"
+    9     | "complex"
+   10     | "logical"
+   11     | "char"
+
+   12 vars: vars "," undef_variable
+   13     | undef_variable
+
+   14 undef_variable: "id" "(" dims ")"
+   15               | "id"
+
+   16 dims: dims "," dim
+   17     | dim
+
+   18 dim: "iconst"
+   19    | "id"
+
+   20 cblock_list: cblock_list cblock
+   21            | cblock
+
+   22 cblock: "/" "id" "/" id_list
+
+   23 id_list: id_list "," "id"
+   24        | "id"
+
+   25 vals: vals "," "id" value_list
+   26     | "id" value_list
+
+   27 value_list: "/" values "/"
+
+   28 values: values "," value
+   29       | value
+
+   30 value: sign constant
+   31      | "string"
+
+   32 sign: "+ or -"
+   33     | ε
+
+   34 constant: simple_constant
+   35         | complex_constant
+
+   36 simple_constant: "iconst"
+   37                | "rconst"
+   38                | "lconst"
+   39                | "cconst"
+
+   40 complex_constant: "[" "rconst" ":" sign "rconst" "]"
+
+   41 statements: statements labeled_statement
+   42           | labeled_statement
+
+   43 labeled_statement: label statement
+   44                  | statement
+
+   45 label: "iconst"
+
+   46 statement: simple_statement
+   47          | compound_statement
+
+   48 simple_statement: assignment
+   49                 | goto_statement
+   50                 | if_statement
+   51                 | subroutine_call
+   52                 | io_statement
+   53                 | "continue"
+   54                 | "return"
+   55                 | "stop"
+
+   56 assignment: variable "=" expression
+   57           | variable "=" "string"
+
+   58 variable: "id" "(" expressions ")"
+   59         | "id"
+
+   60 expressions: expressions "," expression
+   61            | expression
+
+   62 expression: expression ".OR." expression
+   63           | expression ".AND." expression
+   64           | expression ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression "+ or -" expression
+   66           | expression "*" expression
+   67           | expression "/" expression
+   68           | expression "**" expression
+   69           | ".NOT." expression
+   70           | "+ or -" expression
+   71           | variable
+   72           | simple_constant
+   73           | "(" expression ")"
+   74           | "[" expression ":" expression "]"
+   75           | "length" "(" expression ")"
+
+   76 goto_statement: "goto" label
+   77               | "goto" "id" "," "(" labels ")"
+
+   78 labels: labels "," label
+   79       | label
+
+   80 if_statement: "if" "(" expression ")" label "," label "," label
+   81             | "if" "(" expression ")" simple_statement
+
+   82 subroutine_call: "call" variable
+
+   83 io_statement: "read" read_list
+   84             | "write" write_list
+
+   85 read_list: read_list "," read_item
+   86          | read_item
+
+   87 read_item: variable
+   88          | "(" read_list "," "id" "=" iter_space ")"
+
+   89 iter_space: expression "," expression step
+
+   90 step: "," expression
+   91     | ε
+
+   92 write_list: write_list "," write_item
+   93           | write_item
+
+   94 write_item: expression
+   95           | "(" write_list "," "id" "=" iter_space ")"
+   96           | "string"
+
+   97 compound_statement: branch_statement
+   98                   | loop_statement
+
+   99 $@1: ε
+
+  100 branch_statement: "if" "(" expression ")" "then" $@1 body tail
+
+  101 tail: "else" body "endif"
+  102     | "endif"
+
+  103 $@2: ε
+
+  104 loop_statement: "do" "id" "=" iter_space $@2 body "enddo"
+
+  105 subprograms: subprograms subprogram
+  106            | ε
+
+  107 subprogram: header body "end"
+
+  108 header: type "function" "id" "(" formal_parameters ")"
+  109       | "subroutine" "id" "(" formal_parameters ")"
+  110       | "subroutine" "id"
+
+  111 formal_parameters: type vars "," formal_parameters
+  112                  | error vars "," formal_parameters
+  113                  | type error "," formal_parameters
+  114                  | type vars error formal_parameters
+  115                  | type vars "," error
+  116                  | type vars
+  117                  | error vars
+  118                  | type error
+
+
+Terminals, with rules where they appear
+
+    "end of file" (0) 0
+    error (256) 112 113 114 115 117 118
+    "function" (258) 108
+    "subroutine" (259) 109 110
+    "end" (260) 1 107
+    "common" (261) 4
+    "int" (262) 7
+    "real" (263) 8
+    "complex" (264) 9
+    "logical" (265) 10
+    "char" (266) 11
+    "data" (267) 5
+    "continue" (268) 53
+    "goto" (269) 76 77
+    "call" (270) 82
+    "read" (271) 83
+    "write" (272) 84
+    "if" (273) 80 81 100
+    "then" (274) 100
+    "else" (275) 101
+    "endif" (276) 101 102
+    "do" (277) 104
+    "enddo" (278) 104
+    "stop" (279) 55
+    "return" (280) 54
+    "length" (281) 75
+    "id" <strval> (282) 14 15 19 22 23 24 25 26 58 59 77 88 95 104 108 109 110
+    "iconst" <intval> (283) 18 36 45
+    "rconst" <realval> (284) 37 40
+    "lconst" <booleanval> (285) 38
+    "cconst" <charval> (286) 39
+    "string" <strval> (287) 31 57 96
+    ".OR." (288) 62
+    ".AND." (289) 63
+    ".NOT." (290) 69
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." (291) 64
+    "+ or -" (292) 32 65 70
+    "*" (293) 66
+    "/" (294) 22 27 67
+    "**" (295) 68
+    "(" (296) 14 58 73 75 77 80 81 88 95 100 108 109
+    ")" (297) 14 58 73 75 77 80 81 88 95 100 108 109
+    "," (298) 12 16 23 25 28 60 77 78 80 85 88 89 90 92 95 111 112 113 115
+    "=" (299) 56 57 88 95 104
+    "[" (300) 40 74
+    "]" (301) 40 74
+    ":" (302) 40 74
+
+
+Nonterminals, with rules where they appear
+
+    $accept (48)
+        on left: 0
+    program (49)
+        on left: 1
+        on right: 0
+    body (50)
+        on left: 2
+        on right: 1 100 101 104 107
+    declarations (51)
+        on left: 3 4 5 6
+        on right: 2 3 4 5
+    type (52)
+        on left: 7 8 9 10 11
+        on right: 3 108 111 113 114 115 116 118
+    vars (53)
+        on left: 12 13
+        on right: 3 12 111 112 114 115 116 117
+    undef_variable (54)
+        on left: 14 15
+        on right: 12 13
+    dims (55)
+        on left: 16 17
+        on right: 14 16
+    dim (56)
+        on left: 18 19
+        on right: 16 17
+    cblock_list (57)
+        on left: 20 21
+        on right: 4 20
+    cblock (58)
+        on left: 22
+        on right: 20 21
+    id_list (59)
+        on left: 23 24
+        on right: 22 23
+    vals (60)
+        on left: 25 26
+        on right: 5 25
+    value_list (61)
+        on left: 27
+        on right: 25 26
+    values (62)
+        on left: 28 29
+        on right: 27 28
+    value (63)
+        on left: 30 31
+        on right: 28 29
+    sign (64)
+        on left: 32 33
+        on right: 30 40
+    constant (65)
+        on left: 34 35
+        on right: 30
+    simple_constant (66)
+        on left: 36 37 38 39
+        on right: 34 72
+    complex_constant (67)
+        on left: 40
+        on right: 35
+    statements (68)
+        on left: 41 42
+        on right: 2 41
+    labeled_statement (69)
+        on left: 43 44
+        on right: 41 42
+    label (70)
+        on left: 45
+        on right: 43 76 78 79 80
+    statement (71)
+        on left: 46 47
+        on right: 43 44
+    simple_statement (72)
+        on left: 48 49 50 51 52 53 54 55
+        on right: 46 81
+    assignment (73)
+        on left: 56 57
+        on right: 48
+    variable (74)
+        on left: 58 59
+        on right: 56 57 71 82 87
+    expressions (75)
+        on left: 60 61
+        on right: 58 60
+    expression (76)
+        on left: 62 63 64 65 66 67 68 69 70 71 72 73 74 75
+        on right: 56 60 61 62 63 64 65 66 67 68 69 70 73 74 75 80 81 89 90 94 100
+    goto_statement (77)
+        on left: 76 77
+        on right: 49
+    labels (78)
+        on left: 78 79
+        on right: 77 78
+    if_statement (79)
+        on left: 80 81
+        on right: 50
+    subroutine_call (80)
+        on left: 82
+        on right: 51
+    io_statement (81)
+        on left: 83 84
+        on right: 52
+    read_list (82)
+        on left: 85 86
+        on right: 83 85 88
+    read_item (83)
+        on left: 87 88
+        on right: 85 86
+    iter_space (84)
+        on left: 89
+        on right: 88 95 104
+    step (85)
+        on left: 90 91
+        on right: 89
+    write_list (86)
+        on left: 92 93
+        on right: 84 92 95
+    write_item (87)
+        on left: 94 95 96
+        on right: 92 93
+    compound_statement (88)
+        on left: 97 98
+        on right: 47
+    branch_statement (89)
+        on left: 100
+        on right: 97
+    $@1 (90)
+        on left: 99
+        on right: 100
+    tail (91)
+        on left: 101 102
+        on right: 100
+    loop_statement (92)
+        on left: 104
+        on right: 98
+    $@2 (93)
+        on left: 103
+        on right: 104
+    subprograms (94)
+        on left: 105 106
+        on right: 1 105
+    subprogram (95)
+        on left: 107
+        on right: 105
+    header (96)
+        on left: 108 109 110
+        on right: 107
+    formal_parameters (97)
+        on left: 111 112 113 114 115 116 117 118
+        on right: 108 109 111 112 113 114
+
+
+State 0
+
+    0 $accept: • program "end of file"
+
+    $default  reduce using rule 6 (declarations)
+
+    program       go to state 1
+    body          go to state 2
+    declarations  go to state 3
+
+
+State 1
+
+    0 $accept: program • "end of file"
+
+    "end of file"  shift, and go to state 4
+
+
+State 2
+
+    1 program: body • "end" subprograms
+
+    "end"  shift, and go to state 5
+
+
+State 3
+
+    2 body: declarations • statements
+    3 declarations: declarations • type vars
+    4             | declarations • "common" cblock_list
+    5             | declarations • "data" vals
+
+    "common"    shift, and go to state 6
+    "int"       shift, and go to state 7
+    "real"      shift, and go to state 8
+    "complex"   shift, and go to state 9
+    "logical"   shift, and go to state 10
+    "char"      shift, and go to state 11
+    "data"      shift, and go to state 12
+    "continue"  shift, and go to state 13
+    "goto"      shift, and go to state 14
+    "call"      shift, and go to state 15
+    "read"      shift, and go to state 16
+    "write"     shift, and go to state 17
+    "if"        shift, and go to state 18
+    "do"        shift, and go to state 19
+    "stop"      shift, and go to state 20
+    "return"    shift, and go to state 21
+    "id"        shift, and go to state 22
+    "iconst"    shift, and go to state 23
+
+    type                go to state 24
+    statements          go to state 25
+    labeled_statement   go to state 26
+    label               go to state 27
+    statement           go to state 28
+    simple_statement    go to state 29
+    assignment          go to state 30
+    variable            go to state 31
+    goto_statement      go to state 32
+    if_statement        go to state 33
+    subroutine_call     go to state 34
+    io_statement        go to state 35
+    compound_statement  go to state 36
+    branch_statement    go to state 37
+    loop_statement      go to state 38
+
+
+State 4
+
+    0 $accept: program "end of file" •
+
+    $default  accept
+
+
+State 5
+
+    1 program: body "end" • subprograms
+
+    $default  reduce using rule 106 (subprograms)
+
+    subprograms  go to state 39
+
+
+State 6
+
+    4 declarations: declarations "common" • cblock_list
+
+    "/"  shift, and go to state 40
+
+    cblock_list  go to state 41
+    cblock       go to state 42
+
+
+State 7
+
+    7 type: "int" •
+
+    $default  reduce using rule 7 (type)
+
+
+State 8
+
+    8 type: "real" •
+
+    $default  reduce using rule 8 (type)
+
+
+State 9
+
+    9 type: "complex" •
+
+    $default  reduce using rule 9 (type)
+
+
+State 10
+
+   10 type: "logical" •
+
+    $default  reduce using rule 10 (type)
+
+
+State 11
+
+   11 type: "char" •
+
+    $default  reduce using rule 11 (type)
+
+
+State 12
+
+    5 declarations: declarations "data" • vals
+
+    "id"  shift, and go to state 43
+
+    vals  go to state 44
+
+
+State 13
+
+   53 simple_statement: "continue" •
+
+    $default  reduce using rule 53 (simple_statement)
+
+
+State 14
+
+   76 goto_statement: "goto" • label
+   77               | "goto" • "id" "," "(" labels ")"
+
+    "id"      shift, and go to state 45
+    "iconst"  shift, and go to state 23
+
+    label  go to state 46
+
+
+State 15
+
+   82 subroutine_call: "call" • variable
+
+    "id"  shift, and go to state 22
+
+    variable  go to state 47
+
+
+State 16
+
+   83 io_statement: "read" • read_list
+
+    "id"  shift, and go to state 22
+    "("   shift, and go to state 48
+
+    variable   go to state 49
+    read_list  go to state 50
+    read_item  go to state 51
+
+
+State 17
+
+   84 io_statement: "write" • write_list
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    "string"  shift, and go to state 57
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 60
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 64
+    write_list       go to state 65
+    write_item       go to state 66
+
+
+State 18
+
+   80 if_statement: "if" • "(" expression ")" label "," label "," label
+   81             | "if" • "(" expression ")" simple_statement
+  100 branch_statement: "if" • "(" expression ")" "then" $@1 body tail
+
+    "("  shift, and go to state 67
+
+
+State 19
+
+  104 loop_statement: "do" • "id" "=" iter_space $@2 body "enddo"
+
+    "id"  shift, and go to state 68
+
+
+State 20
+
+   55 simple_statement: "stop" •
+
+    $default  reduce using rule 55 (simple_statement)
+
+
+State 21
+
+   54 simple_statement: "return" •
+
+    $default  reduce using rule 54 (simple_statement)
+
+
+State 22
+
+   58 variable: "id" • "(" expressions ")"
+   59         | "id" •
+
+    "("  shift, and go to state 69
+
+    $default  reduce using rule 59 (variable)
+
+
+State 23
+
+   45 label: "iconst" •
+
+    $default  reduce using rule 45 (label)
+
+
+State 24
+
+    3 declarations: declarations type • vars
+
+    "id"  shift, and go to state 70
+
+    vars            go to state 71
+    undef_variable  go to state 72
+
+
+State 25
+
+    2 body: declarations statements •
+   41 statements: statements • labeled_statement
+
+    "continue"  shift, and go to state 13
+    "goto"      shift, and go to state 14
+    "call"      shift, and go to state 15
+    "read"      shift, and go to state 16
+    "write"     shift, and go to state 17
+    "if"        shift, and go to state 18
+    "do"        shift, and go to state 19
+    "stop"      shift, and go to state 20
+    "return"    shift, and go to state 21
+    "id"        shift, and go to state 22
+    "iconst"    shift, and go to state 23
+
+    $default  reduce using rule 2 (body)
+
+    labeled_statement   go to state 73
+    label               go to state 27
+    statement           go to state 28
+    simple_statement    go to state 29
+    assignment          go to state 30
+    variable            go to state 31
+    goto_statement      go to state 32
+    if_statement        go to state 33
+    subroutine_call     go to state 34
+    io_statement        go to state 35
+    compound_statement  go to state 36
+    branch_statement    go to state 37
+    loop_statement      go to state 38
+
+
+State 26
+
+   42 statements: labeled_statement •
+
+    $default  reduce using rule 42 (statements)
+
+
+State 27
+
+   43 labeled_statement: label • statement
+
+    "continue"  shift, and go to state 13
+    "goto"      shift, and go to state 14
+    "call"      shift, and go to state 15
+    "read"      shift, and go to state 16
+    "write"     shift, and go to state 17
+    "if"        shift, and go to state 18
+    "do"        shift, and go to state 19
+    "stop"      shift, and go to state 20
+    "return"    shift, and go to state 21
+    "id"        shift, and go to state 22
+
+    statement           go to state 74
+    simple_statement    go to state 29
+    assignment          go to state 30
+    variable            go to state 31
+    goto_statement      go to state 32
+    if_statement        go to state 33
+    subroutine_call     go to state 34
+    io_statement        go to state 35
+    compound_statement  go to state 36
+    branch_statement    go to state 37
+    loop_statement      go to state 38
+
+
+State 28
+
+   44 labeled_statement: statement •
+
+    $default  reduce using rule 44 (labeled_statement)
+
+
+State 29
+
+   46 statement: simple_statement •
+
+    $default  reduce using rule 46 (statement)
+
+
+State 30
+
+   48 simple_statement: assignment •
+
+    $default  reduce using rule 48 (simple_statement)
+
+
+State 31
+
+   56 assignment: variable • "=" expression
+   57           | variable • "=" "string"
+
+    "="  shift, and go to state 75
+
+
+State 32
+
+   49 simple_statement: goto_statement •
+
+    $default  reduce using rule 49 (simple_statement)
+
+
+State 33
+
+   50 simple_statement: if_statement •
+
+    $default  reduce using rule 50 (simple_statement)
+
+
+State 34
+
+   51 simple_statement: subroutine_call •
+
+    $default  reduce using rule 51 (simple_statement)
+
+
+State 35
+
+   52 simple_statement: io_statement •
+
+    $default  reduce using rule 52 (simple_statement)
+
+
+State 36
+
+   47 statement: compound_statement •
+
+    $default  reduce using rule 47 (statement)
+
+
+State 37
+
+   97 compound_statement: branch_statement •
+
+    $default  reduce using rule 97 (compound_statement)
+
+
+State 38
+
+   98 compound_statement: loop_statement •
+
+    $default  reduce using rule 98 (compound_statement)
+
+
+State 39
+
+    1 program: body "end" subprograms •
+  105 subprograms: subprograms • subprogram
+
+    "subroutine"  shift, and go to state 76
+    "int"         shift, and go to state 7
+    "real"        shift, and go to state 8
+    "complex"     shift, and go to state 9
+    "logical"     shift, and go to state 10
+    "char"        shift, and go to state 11
+
+    $default  reduce using rule 1 (program)
+
+    type        go to state 77
+    subprogram  go to state 78
+    header      go to state 79
+
+
+State 40
+
+   22 cblock: "/" • "id" "/" id_list
+
+    "id"  shift, and go to state 80
+
+
+State 41
+
+    4 declarations: declarations "common" cblock_list •
+   20 cblock_list: cblock_list • cblock
+
+    "/"  shift, and go to state 40
+
+    $default  reduce using rule 4 (declarations)
+
+    cblock  go to state 81
+
+
+State 42
+
+   21 cblock_list: cblock •
+
+    $default  reduce using rule 21 (cblock_list)
+
+
+State 43
+
+   26 vals: "id" • value_list
+
+    "/"  shift, and go to state 82
+
+    value_list  go to state 83
+
+
+State 44
+
+    5 declarations: declarations "data" vals •
+   25 vals: vals • "," "id" value_list
+
+    ","  shift, and go to state 84
+
+    $default  reduce using rule 5 (declarations)
+
+
+State 45
+
+   77 goto_statement: "goto" "id" • "," "(" labels ")"
+
+    ","  shift, and go to state 85
+
+
+State 46
+
+   76 goto_statement: "goto" label •
+
+    $default  reduce using rule 76 (goto_statement)
+
+
+State 47
+
+   82 subroutine_call: "call" variable •
+
+    $default  reduce using rule 82 (subroutine_call)
+
+
+State 48
+
+   88 read_item: "(" • read_list "," "id" "=" iter_space ")"
+
+    "id"  shift, and go to state 22
+    "("   shift, and go to state 48
+
+    variable   go to state 49
+    read_list  go to state 86
+    read_item  go to state 51
+
+
+State 49
+
+   87 read_item: variable •
+
+    $default  reduce using rule 87 (read_item)
+
+
+State 50
+
+   83 io_statement: "read" read_list •
+   85 read_list: read_list • "," read_item
+
+    ","  shift, and go to state 87
+
+    $default  reduce using rule 83 (io_statement)
+
+
+State 51
+
+   86 read_list: read_item •
+
+    $default  reduce using rule 86 (read_list)
+
+
+State 52
+
+   75 expression: "length" • "(" expression ")"
+
+    "("  shift, and go to state 88
+
+
+State 53
+
+   36 simple_constant: "iconst" •
+
+    $default  reduce using rule 36 (simple_constant)
+
+
+State 54
+
+   37 simple_constant: "rconst" •
+
+    $default  reduce using rule 37 (simple_constant)
+
+
+State 55
+
+   38 simple_constant: "lconst" •
+
+    $default  reduce using rule 38 (simple_constant)
+
+
+State 56
+
+   39 simple_constant: "cconst" •
+
+    $default  reduce using rule 39 (simple_constant)
+
+
+State 57
+
+   96 write_item: "string" •
+
+    $default  reduce using rule 96 (write_item)
+
+
+State 58
+
+   69 expression: ".NOT." • expression
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 90
+
+
+State 59
+
+   70 expression: "+ or -" • expression
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 91
+
+
+State 60
+
+   73 expression: "(" • expression ")"
+   95 write_item: "(" • write_list "," "id" "=" iter_space ")"
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    "string"  shift, and go to state 57
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 60
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 92
+    write_list       go to state 93
+    write_item       go to state 66
+
+
+State 61
+
+   74 expression: "[" • expression ":" expression "]"
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 94
+
+
+State 62
+
+   72 expression: simple_constant •
+
+    $default  reduce using rule 72 (expression)
+
+
+State 63
+
+   71 expression: variable •
+
+    $default  reduce using rule 71 (expression)
+
+
+State 64
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+   94 write_item: expression •
+
+    ".OR."                                         shift, and go to state 95
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+
+    $default  reduce using rule 94 (write_item)
+
+
+State 65
+
+   84 io_statement: "write" write_list •
+   92 write_list: write_list • "," write_item
+
+    ","  shift, and go to state 102
+
+    $default  reduce using rule 84 (io_statement)
+
+
+State 66
+
+   93 write_list: write_item •
+
+    $default  reduce using rule 93 (write_list)
+
+
+State 67
+
+   80 if_statement: "if" "(" • expression ")" label "," label "," label
+   81             | "if" "(" • expression ")" simple_statement
+  100 branch_statement: "if" "(" • expression ")" "then" $@1 body tail
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 103
+
+
+State 68
+
+  104 loop_statement: "do" "id" • "=" iter_space $@2 body "enddo"
+
+    "="  shift, and go to state 104
+
+
+State 69
+
+   58 variable: "id" "(" • expressions ")"
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expressions      go to state 105
+    expression       go to state 106
+
+
+State 70
+
+   14 undef_variable: "id" • "(" dims ")"
+   15               | "id" •
+
+    "("  shift, and go to state 107
+
+    $default  reduce using rule 15 (undef_variable)
+
+
+State 71
+
+    3 declarations: declarations type vars •
+   12 vars: vars • "," undef_variable
+
+    ","  shift, and go to state 108
+
+    $default  reduce using rule 3 (declarations)
+
+
+State 72
+
+   13 vars: undef_variable •
+
+    $default  reduce using rule 13 (vars)
+
+
+State 73
+
+   41 statements: statements labeled_statement •
+
+    $default  reduce using rule 41 (statements)
+
+
+State 74
+
+   43 labeled_statement: label statement •
+
+    $default  reduce using rule 43 (labeled_statement)
+
+
+State 75
+
+   56 assignment: variable "=" • expression
+   57           | variable "=" • "string"
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    "string"  shift, and go to state 109
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 110
+
+
+State 76
+
+  109 header: "subroutine" • "id" "(" formal_parameters ")"
+  110       | "subroutine" • "id"
+
+    "id"  shift, and go to state 111
+
+
+State 77
+
+  108 header: type • "function" "id" "(" formal_parameters ")"
+
+    "function"  shift, and go to state 112
+
+
+State 78
+
+  105 subprograms: subprograms subprogram •
+
+    $default  reduce using rule 105 (subprograms)
+
+
+State 79
+
+  107 subprogram: header • body "end"
+
+    $default  reduce using rule 6 (declarations)
+
+    body          go to state 113
+    declarations  go to state 3
+
+
+State 80
+
+   22 cblock: "/" "id" • "/" id_list
+
+    "/"  shift, and go to state 114
+
+
+State 81
+
+   20 cblock_list: cblock_list cblock •
+
+    $default  reduce using rule 20 (cblock_list)
+
+
+State 82
+
+   27 value_list: "/" • values "/"
+
+    "string"  shift, and go to state 115
+    "+ or -"  shift, and go to state 116
+
+    $default  reduce using rule 33 (sign)
+
+    values  go to state 117
+    value   go to state 118
+    sign    go to state 119
+
+
+State 83
+
+   26 vals: "id" value_list •
+
+    $default  reduce using rule 26 (vals)
+
+
+State 84
+
+   25 vals: vals "," • "id" value_list
+
+    "id"  shift, and go to state 120
+
+
+State 85
+
+   77 goto_statement: "goto" "id" "," • "(" labels ")"
+
+    "("  shift, and go to state 121
+
+
+State 86
+
+   85 read_list: read_list • "," read_item
+   88 read_item: "(" read_list • "," "id" "=" iter_space ")"
+
+    ","  shift, and go to state 122
+
+
+State 87
+
+   85 read_list: read_list "," • read_item
+
+    "id"  shift, and go to state 22
+    "("   shift, and go to state 48
+
+    variable   go to state 49
+    read_item  go to state 123
+
+
+State 88
+
+   75 expression: "length" "(" • expression ")"
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 124
+
+
+State 89
+
+   73 expression: "(" • expression ")"
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 125
+
+
+State 90
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+   69           | ".NOT." expression •
+
+    "**"  shift, and go to state 101
+
+    $default  reduce using rule 69 (expression)
+
+
+State 91
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+   70           | "+ or -" expression •
+
+    "*"   shift, and go to state 99
+    "/"   shift, and go to state 100
+    "**"  shift, and go to state 101
+
+    $default  reduce using rule 70 (expression)
+
+
+State 92
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+   73           | "(" expression • ")"
+   94 write_item: expression •
+
+    ".OR."                                         shift, and go to state 95
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+    ")"                                            shift, and go to state 126
+
+    $default  reduce using rule 94 (write_item)
+
+
+State 93
+
+   92 write_list: write_list • "," write_item
+   95 write_item: "(" write_list • "," "id" "=" iter_space ")"
+
+    ","  shift, and go to state 127
+
+
+State 94
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+   74           | "[" expression • ":" expression "]"
+
+    ".OR."                                         shift, and go to state 95
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+    ":"                                            shift, and go to state 128
+
+
+State 95
+
+   62 expression: expression ".OR." • expression
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 129
+
+
+State 96
+
+   63 expression: expression ".AND." • expression
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 130
+
+
+State 97
+
+   64 expression: expression ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." • expression
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 131
+
+
+State 98
+
+   65 expression: expression "+ or -" • expression
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 132
+
+
+State 99
+
+   66 expression: expression "*" • expression
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 133
+
+
+State 100
+
+   67 expression: expression "/" • expression
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 134
+
+
+State 101
+
+   68 expression: expression "**" • expression
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 135
+
+
+State 102
+
+   92 write_list: write_list "," • write_item
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    "string"  shift, and go to state 57
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 60
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 64
+    write_item       go to state 136
+
+
+State 103
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+   80 if_statement: "if" "(" expression • ")" label "," label "," label
+   81             | "if" "(" expression • ")" simple_statement
+  100 branch_statement: "if" "(" expression • ")" "then" $@1 body tail
+
+    ".OR."                                         shift, and go to state 95
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+    ")"                                            shift, and go to state 137
+
+
+State 104
+
+  104 loop_statement: "do" "id" "=" • iter_space $@2 body "enddo"
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 138
+    iter_space       go to state 139
+
+
+State 105
+
+   58 variable: "id" "(" expressions • ")"
+   60 expressions: expressions • "," expression
+
+    ")"  shift, and go to state 140
+    ","  shift, and go to state 141
+
+
+State 106
+
+   61 expressions: expression •
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+
+    ".OR."                                         shift, and go to state 95
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+
+    $default  reduce using rule 61 (expressions)
+
+
+State 107
+
+   14 undef_variable: "id" "(" • dims ")"
+
+    "id"      shift, and go to state 142
+    "iconst"  shift, and go to state 143
+
+    dims  go to state 144
+    dim   go to state 145
+
+
+State 108
+
+   12 vars: vars "," • undef_variable
+
+    "id"  shift, and go to state 70
+
+    undef_variable  go to state 146
+
+
+State 109
+
+   57 assignment: variable "=" "string" •
+
+    $default  reduce using rule 57 (assignment)
+
+
+State 110
+
+   56 assignment: variable "=" expression •
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+
+    ".OR."                                         shift, and go to state 95
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+
+    $default  reduce using rule 56 (assignment)
+
+
+State 111
+
+  109 header: "subroutine" "id" • "(" formal_parameters ")"
+  110       | "subroutine" "id" •
+
+    "("  shift, and go to state 147
+
+    $default  reduce using rule 110 (header)
+
+
+State 112
+
+  108 header: type "function" • "id" "(" formal_parameters ")"
+
+    "id"  shift, and go to state 148
+
+
+State 113
+
+  107 subprogram: header body • "end"
+
+    "end"  shift, and go to state 149
+
+
+State 114
+
+   22 cblock: "/" "id" "/" • id_list
+
+    "id"  shift, and go to state 150
+
+    id_list  go to state 151
+
+
+State 115
+
+   31 value: "string" •
+
+    $default  reduce using rule 31 (value)
+
+
+State 116
+
+   32 sign: "+ or -" •
+
+    $default  reduce using rule 32 (sign)
+
+
+State 117
+
+   27 value_list: "/" values • "/"
+   28 values: values • "," value
+
+    "/"  shift, and go to state 152
+    ","  shift, and go to state 153
+
+
+State 118
+
+   29 values: value •
+
+    $default  reduce using rule 29 (values)
+
+
+State 119
+
+   30 value: sign • constant
+
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    "["       shift, and go to state 154
+
+    constant          go to state 155
+    simple_constant   go to state 156
+    complex_constant  go to state 157
+
+
+State 120
+
+   25 vals: vals "," "id" • value_list
+
+    "/"  shift, and go to state 82
+
+    value_list  go to state 158
+
+
+State 121
+
+   77 goto_statement: "goto" "id" "," "(" • labels ")"
+
+    "iconst"  shift, and go to state 23
+
+    label   go to state 159
+    labels  go to state 160
+
+
+State 122
+
+   85 read_list: read_list "," • read_item
+   88 read_item: "(" read_list "," • "id" "=" iter_space ")"
+
+    "id"  shift, and go to state 161
+    "("   shift, and go to state 48
+
+    variable   go to state 49
+    read_item  go to state 123
+
+
+State 123
+
+   85 read_list: read_list "," read_item •
+
+    $default  reduce using rule 85 (read_list)
+
+
+State 124
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+   75           | "length" "(" expression • ")"
+
+    ".OR."                                         shift, and go to state 95
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+    ")"                                            shift, and go to state 162
+
+
+State 125
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+   73           | "(" expression • ")"
+
+    ".OR."                                         shift, and go to state 95
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+    ")"                                            shift, and go to state 126
+
+
+State 126
+
+   73 expression: "(" expression ")" •
+
+    $default  reduce using rule 73 (expression)
+
+
+State 127
+
+   92 write_list: write_list "," • write_item
+   95 write_item: "(" write_list "," • "id" "=" iter_space ")"
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 163
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    "string"  shift, and go to state 57
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 60
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 64
+    write_item       go to state 136
+
+
+State 128
+
+   74 expression: "[" expression ":" • expression "]"
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 164
+
+
+State 129
+
+   62 expression: expression • ".OR." expression
+   62           | expression ".OR." expression •
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+
+    $default  reduce using rule 62 (expression)
+
+
+State 130
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   63           | expression ".AND." expression •
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+
+    $default  reduce using rule 63 (expression)
+
+
+State 131
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   64           | expression ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression •
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+
+    "+ or -"  shift, and go to state 98
+    "*"       shift, and go to state 99
+    "/"       shift, and go to state 100
+    "**"      shift, and go to state 101
+
+    $default  reduce using rule 64 (expression)
+
+
+State 132
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   65           | expression "+ or -" expression •
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+
+    "*"   shift, and go to state 99
+    "/"   shift, and go to state 100
+    "**"  shift, and go to state 101
+
+    $default  reduce using rule 65 (expression)
+
+
+State 133
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   66           | expression "*" expression •
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+
+    "**"  shift, and go to state 101
+
+    $default  reduce using rule 66 (expression)
+
+
+State 134
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   67           | expression "/" expression •
+   68           | expression • "**" expression
+
+    "*"   shift, and go to state 99
+    "**"  shift, and go to state 101
+
+    $default  reduce using rule 67 (expression)
+
+
+State 135
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+   68           | expression "**" expression •
+
+    $default  reduce using rule 68 (expression)
+
+
+State 136
+
+   92 write_list: write_list "," write_item •
+
+    $default  reduce using rule 92 (write_list)
+
+
+State 137
+
+   80 if_statement: "if" "(" expression ")" • label "," label "," label
+   81             | "if" "(" expression ")" • simple_statement
+  100 branch_statement: "if" "(" expression ")" • "then" $@1 body tail
+
+    "continue"  shift, and go to state 13
+    "goto"      shift, and go to state 14
+    "call"      shift, and go to state 15
+    "read"      shift, and go to state 16
+    "write"     shift, and go to state 17
+    "if"        shift, and go to state 165
+    "then"      shift, and go to state 166
+    "stop"      shift, and go to state 20
+    "return"    shift, and go to state 21
+    "id"        shift, and go to state 22
+    "iconst"    shift, and go to state 23
+
+    label             go to state 167
+    simple_statement  go to state 168
+    assignment        go to state 30
+    variable          go to state 31
+    goto_statement    go to state 32
+    if_statement      go to state 33
+    subroutine_call   go to state 34
+    io_statement      go to state 35
+
+
+State 138
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+   89 iter_space: expression • "," expression step
+
+    ".OR."                                         shift, and go to state 95
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+    ","                                            shift, and go to state 169
+
+
+State 139
+
+  104 loop_statement: "do" "id" "=" iter_space • $@2 body "enddo"
+
+    $default  reduce using rule 103 ($@2)
+
+    $@2  go to state 170
+
+
+State 140
+
+   58 variable: "id" "(" expressions ")" •
+
+    $default  reduce using rule 58 (variable)
+
+
+State 141
+
+   60 expressions: expressions "," • expression
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 171
+
+
+State 142
+
+   19 dim: "id" •
+
+    $default  reduce using rule 19 (dim)
+
+
+State 143
+
+   18 dim: "iconst" •
+
+    $default  reduce using rule 18 (dim)
+
+
+State 144
+
+   14 undef_variable: "id" "(" dims • ")"
+   16 dims: dims • "," dim
+
+    ")"  shift, and go to state 172
+    ","  shift, and go to state 173
+
+
+State 145
+
+   17 dims: dim •
+
+    $default  reduce using rule 17 (dims)
+
+
+State 146
+
+   12 vars: vars "," undef_variable •
+
+    $default  reduce using rule 12 (vars)
+
+
+State 147
+
+  109 header: "subroutine" "id" "(" • formal_parameters ")"
+
+    error      shift, and go to state 174
+    "int"      shift, and go to state 7
+    "real"     shift, and go to state 8
+    "complex"  shift, and go to state 9
+    "logical"  shift, and go to state 10
+    "char"     shift, and go to state 11
+
+    type               go to state 175
+    formal_parameters  go to state 176
+
+
+State 148
+
+  108 header: type "function" "id" • "(" formal_parameters ")"
+
+    "("  shift, and go to state 177
+
+
+State 149
+
+  107 subprogram: header body "end" •
+
+    $default  reduce using rule 107 (subprogram)
+
+
+State 150
+
+   24 id_list: "id" •
+
+    $default  reduce using rule 24 (id_list)
+
+
+State 151
+
+   22 cblock: "/" "id" "/" id_list •
+   23 id_list: id_list • "," "id"
+
+    ","  shift, and go to state 178
+
+    $default  reduce using rule 22 (cblock)
+
+
+State 152
+
+   27 value_list: "/" values "/" •
+
+    $default  reduce using rule 27 (value_list)
+
+
+State 153
+
+   28 values: values "," • value
+
+    "string"  shift, and go to state 115
+    "+ or -"  shift, and go to state 116
+
+    $default  reduce using rule 33 (sign)
+
+    value  go to state 179
+    sign   go to state 119
+
+
+State 154
+
+   40 complex_constant: "[" • "rconst" ":" sign "rconst" "]"
+
+    "rconst"  shift, and go to state 180
+
+
+State 155
+
+   30 value: sign constant •
+
+    $default  reduce using rule 30 (value)
+
+
+State 156
+
+   34 constant: simple_constant •
+
+    $default  reduce using rule 34 (constant)
+
+
+State 157
+
+   35 constant: complex_constant •
+
+    $default  reduce using rule 35 (constant)
+
+
+State 158
+
+   25 vals: vals "," "id" value_list •
+
+    $default  reduce using rule 25 (vals)
+
+
+State 159
+
+   79 labels: label •
+
+    $default  reduce using rule 79 (labels)
+
+
+State 160
+
+   77 goto_statement: "goto" "id" "," "(" labels • ")"
+   78 labels: labels • "," label
+
+    ")"  shift, and go to state 181
+    ","  shift, and go to state 182
+
+
+State 161
+
+   58 variable: "id" • "(" expressions ")"
+   59         | "id" •
+   88 read_item: "(" read_list "," "id" • "=" iter_space ")"
+
+    "("  shift, and go to state 69
+    "="  shift, and go to state 183
+
+    $default  reduce using rule 59 (variable)
+
+
+State 162
+
+   75 expression: "length" "(" expression ")" •
+
+    $default  reduce using rule 75 (expression)
+
+
+State 163
+
+   58 variable: "id" • "(" expressions ")"
+   59         | "id" •
+   95 write_item: "(" write_list "," "id" • "=" iter_space ")"
+
+    "("  shift, and go to state 69
+    "="  shift, and go to state 184
+
+    $default  reduce using rule 59 (variable)
+
+
+State 164
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+   74           | "[" expression ":" expression • "]"
+
+    ".OR."                                         shift, and go to state 95
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+    "]"                                            shift, and go to state 185
+
+
+State 165
+
+   80 if_statement: "if" • "(" expression ")" label "," label "," label
+   81             | "if" • "(" expression ")" simple_statement
+
+    "("  shift, and go to state 186
+
+
+State 166
+
+  100 branch_statement: "if" "(" expression ")" "then" • $@1 body tail
+
+    $default  reduce using rule 99 ($@1)
+
+    $@1  go to state 187
+
+
+State 167
+
+   80 if_statement: "if" "(" expression ")" label • "," label "," label
+
+    ","  shift, and go to state 188
+
+
+State 168
+
+   81 if_statement: "if" "(" expression ")" simple_statement •
+
+    $default  reduce using rule 81 (if_statement)
+
+
+State 169
+
+   89 iter_space: expression "," • expression step
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 189
+
+
+State 170
+
+  104 loop_statement: "do" "id" "=" iter_space $@2 • body "enddo"
+
+    $default  reduce using rule 6 (declarations)
+
+    body          go to state 190
+    declarations  go to state 3
+
+
+State 171
+
+   60 expressions: expressions "," expression •
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+
+    ".OR."                                         shift, and go to state 95
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+
+    $default  reduce using rule 60 (expressions)
+
+
+State 172
+
+   14 undef_variable: "id" "(" dims ")" •
+
+    $default  reduce using rule 14 (undef_variable)
+
+
+State 173
+
+   16 dims: dims "," • dim
+
+    "id"      shift, and go to state 142
+    "iconst"  shift, and go to state 143
+
+    dim  go to state 191
+
+
+State 174
+
+  112 formal_parameters: error • vars "," formal_parameters
+  117                  | error • vars
+
+    "id"  shift, and go to state 70
+
+    vars            go to state 192
+    undef_variable  go to state 72
+
+
+State 175
+
+  111 formal_parameters: type • vars "," formal_parameters
+  113                  | type • error "," formal_parameters
+  114                  | type • vars error formal_parameters
+  115                  | type • vars "," error
+  116                  | type • vars
+  118                  | type • error
+
+    error  shift, and go to state 193
+    "id"   shift, and go to state 70
+
+    vars            go to state 194
+    undef_variable  go to state 72
+
+
+State 176
+
+  109 header: "subroutine" "id" "(" formal_parameters • ")"
+
+    ")"  shift, and go to state 195
+
+
+State 177
+
+  108 header: type "function" "id" "(" • formal_parameters ")"
+
+    error      shift, and go to state 174
+    "int"      shift, and go to state 7
+    "real"     shift, and go to state 8
+    "complex"  shift, and go to state 9
+    "logical"  shift, and go to state 10
+    "char"     shift, and go to state 11
+
+    type               go to state 175
+    formal_parameters  go to state 196
+
+
+State 178
+
+   23 id_list: id_list "," • "id"
+
+    "id"  shift, and go to state 197
+
+
+State 179
+
+   28 values: values "," value •
+
+    $default  reduce using rule 28 (values)
+
+
+State 180
+
+   40 complex_constant: "[" "rconst" • ":" sign "rconst" "]"
+
+    ":"  shift, and go to state 198
+
+
+State 181
+
+   77 goto_statement: "goto" "id" "," "(" labels ")" •
+
+    $default  reduce using rule 77 (goto_statement)
+
+
+State 182
+
+   78 labels: labels "," • label
+
+    "iconst"  shift, and go to state 23
+
+    label  go to state 199
+
+
+State 183
+
+   88 read_item: "(" read_list "," "id" "=" • iter_space ")"
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 138
+    iter_space       go to state 200
+
+
+State 184
+
+   95 write_item: "(" write_list "," "id" "=" • iter_space ")"
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 138
+    iter_space       go to state 201
+
+
+State 185
+
+   74 expression: "[" expression ":" expression "]" •
+
+    $default  reduce using rule 74 (expression)
+
+
+State 186
+
+   80 if_statement: "if" "(" • expression ")" label "," label "," label
+   81             | "if" "(" • expression ")" simple_statement
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 202
+
+
+State 187
+
+  100 branch_statement: "if" "(" expression ")" "then" $@1 • body tail
+
+    $default  reduce using rule 6 (declarations)
+
+    body          go to state 203
+    declarations  go to state 3
+
+
+State 188
+
+   80 if_statement: "if" "(" expression ")" label "," • label "," label
+
+    "iconst"  shift, and go to state 23
+
+    label  go to state 204
+
+
+State 189
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+   89 iter_space: expression "," expression • step
+
+    ".OR."                                         shift, and go to state 95
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+    ","                                            shift, and go to state 205
+
+    $default  reduce using rule 91 (step)
+
+    step  go to state 206
+
+
+State 190
+
+  104 loop_statement: "do" "id" "=" iter_space $@2 body • "enddo"
+
+    "enddo"  shift, and go to state 207
+
+
+State 191
+
+   16 dims: dims "," dim •
+
+    $default  reduce using rule 16 (dims)
+
+
+State 192
+
+   12 vars: vars • "," undef_variable
+  112 formal_parameters: error vars • "," formal_parameters
+  117                  | error vars •
+
+    ","  shift, and go to state 208
+
+    $default  reduce using rule 117 (formal_parameters)
+
+
+State 193
+
+  113 formal_parameters: type error • "," formal_parameters
+  118                  | type error •
+
+    ","  shift, and go to state 209
+
+    $default  reduce using rule 118 (formal_parameters)
+
+
+State 194
+
+   12 vars: vars • "," undef_variable
+  111 formal_parameters: type vars • "," formal_parameters
+  114                  | type vars • error formal_parameters
+  115                  | type vars • "," error
+  116                  | type vars •
+
+    error  shift, and go to state 210
+    ","    shift, and go to state 211
+
+    ")"  reduce using rule 116 (formal_parameters)
+
+
+State 195
+
+  109 header: "subroutine" "id" "(" formal_parameters ")" •
+
+    $default  reduce using rule 109 (header)
+
+
+State 196
+
+  108 header: type "function" "id" "(" formal_parameters • ")"
+
+    ")"  shift, and go to state 212
+
+
+State 197
+
+   23 id_list: id_list "," "id" •
+
+    $default  reduce using rule 23 (id_list)
+
+
+State 198
+
+   40 complex_constant: "[" "rconst" ":" • sign "rconst" "]"
+
+    "+ or -"  shift, and go to state 116
+
+    $default  reduce using rule 33 (sign)
+
+    sign  go to state 213
+
+
+State 199
+
+   78 labels: labels "," label •
+
+    $default  reduce using rule 78 (labels)
+
+
+State 200
+
+   88 read_item: "(" read_list "," "id" "=" iter_space • ")"
+
+    ")"  shift, and go to state 214
+
+
+State 201
+
+   95 write_item: "(" write_list "," "id" "=" iter_space • ")"
+
+    ")"  shift, and go to state 215
+
+
+State 202
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+   80 if_statement: "if" "(" expression • ")" label "," label "," label
+   81             | "if" "(" expression • ")" simple_statement
+
+    ".OR."                                         shift, and go to state 95
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+    ")"                                            shift, and go to state 216
+
+
+State 203
+
+  100 branch_statement: "if" "(" expression ")" "then" $@1 body • tail
+
+    "else"   shift, and go to state 217
+    "endif"  shift, and go to state 218
+
+    tail  go to state 219
+
+
+State 204
+
+   80 if_statement: "if" "(" expression ")" label "," label • "," label
+
+    ","  shift, and go to state 220
+
+
+State 205
+
+   90 step: "," • expression
+
+    "length"  shift, and go to state 52
+    "id"      shift, and go to state 22
+    "iconst"  shift, and go to state 53
+    "rconst"  shift, and go to state 54
+    "lconst"  shift, and go to state 55
+    "cconst"  shift, and go to state 56
+    ".NOT."   shift, and go to state 58
+    "+ or -"  shift, and go to state 59
+    "("       shift, and go to state 89
+    "["       shift, and go to state 61
+
+    simple_constant  go to state 62
+    variable         go to state 63
+    expression       go to state 221
+
+
+State 206
+
+   89 iter_space: expression "," expression step •
+
+    $default  reduce using rule 89 (iter_space)
+
+
+State 207
+
+  104 loop_statement: "do" "id" "=" iter_space $@2 body "enddo" •
+
+    $default  reduce using rule 104 (loop_statement)
+
+
+State 208
+
+   12 vars: vars "," • undef_variable
+  112 formal_parameters: error vars "," • formal_parameters
+
+    error      shift, and go to state 174
+    "int"      shift, and go to state 7
+    "real"     shift, and go to state 8
+    "complex"  shift, and go to state 9
+    "logical"  shift, and go to state 10
+    "char"     shift, and go to state 11
+    "id"       shift, and go to state 70
+
+    type               go to state 175
+    undef_variable     go to state 146
+    formal_parameters  go to state 222
+
+
+State 209
+
+  113 formal_parameters: type error "," • formal_parameters
+
+    error      shift, and go to state 174
+    "int"      shift, and go to state 7
+    "real"     shift, and go to state 8
+    "complex"  shift, and go to state 9
+    "logical"  shift, and go to state 10
+    "char"     shift, and go to state 11
+
+    type               go to state 175
+    formal_parameters  go to state 223
+
+
+State 210
+
+  114 formal_parameters: type vars error • formal_parameters
+
+    error      shift, and go to state 174
+    "int"      shift, and go to state 7
+    "real"     shift, and go to state 8
+    "complex"  shift, and go to state 9
+    "logical"  shift, and go to state 10
+    "char"     shift, and go to state 11
+
+    type               go to state 175
+    formal_parameters  go to state 224
+
+
+State 211
+
+   12 vars: vars "," • undef_variable
+  111 formal_parameters: type vars "," • formal_parameters
+  115                  | type vars "," • error
+
+    error      shift, and go to state 225
+    "int"      shift, and go to state 7
+    "real"     shift, and go to state 8
+    "complex"  shift, and go to state 9
+    "logical"  shift, and go to state 10
+    "char"     shift, and go to state 11
+    "id"       shift, and go to state 70
+
+    type               go to state 175
+    undef_variable     go to state 146
+    formal_parameters  go to state 226
+
+
+State 212
+
+  108 header: type "function" "id" "(" formal_parameters ")" •
+
+    $default  reduce using rule 108 (header)
+
+
+State 213
+
+   40 complex_constant: "[" "rconst" ":" sign • "rconst" "]"
+
+    "rconst"  shift, and go to state 227
+
+
+State 214
+
+   88 read_item: "(" read_list "," "id" "=" iter_space ")" •
+
+    $default  reduce using rule 88 (read_item)
+
+
+State 215
+
+   95 write_item: "(" write_list "," "id" "=" iter_space ")" •
+
+    $default  reduce using rule 95 (write_item)
+
+
+State 216
+
+   80 if_statement: "if" "(" expression ")" • label "," label "," label
+   81             | "if" "(" expression ")" • simple_statement
+
+    "continue"  shift, and go to state 13
+    "goto"      shift, and go to state 14
+    "call"      shift, and go to state 15
+    "read"      shift, and go to state 16
+    "write"     shift, and go to state 17
+    "if"        shift, and go to state 165
+    "stop"      shift, and go to state 20
+    "return"    shift, and go to state 21
+    "id"        shift, and go to state 22
+    "iconst"    shift, and go to state 23
+
+    label             go to state 167
+    simple_statement  go to state 168
+    assignment        go to state 30
+    variable          go to state 31
+    goto_statement    go to state 32
+    if_statement      go to state 33
+    subroutine_call   go to state 34
+    io_statement      go to state 35
+
+
+State 217
+
+  101 tail: "else" • body "endif"
+
+    $default  reduce using rule 6 (declarations)
+
+    body          go to state 228
+    declarations  go to state 3
+
+
+State 218
+
+  102 tail: "endif" •
+
+    $default  reduce using rule 102 (tail)
+
+
+State 219
+
+  100 branch_statement: "if" "(" expression ")" "then" $@1 body tail •
+
+    $default  reduce using rule 100 (branch_statement)
+
+
+State 220
+
+   80 if_statement: "if" "(" expression ")" label "," label "," • label
+
+    "iconst"  shift, and go to state 23
+
+    label  go to state 229
+
+
+State 221
+
+   62 expression: expression • ".OR." expression
+   63           | expression • ".AND." expression
+   64           | expression • ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE." expression
+   65           | expression • "+ or -" expression
+   66           | expression • "*" expression
+   67           | expression • "/" expression
+   68           | expression • "**" expression
+   90 step: "," expression •
+
+    ".OR."                                         shift, and go to state 95
+    ".AND."                                        shift, and go to state 96
+    ".GT. or.GE. or .LT. or .LE. or .EQ. or .NE."  shift, and go to state 97
+    "+ or -"                                       shift, and go to state 98
+    "*"                                            shift, and go to state 99
+    "/"                                            shift, and go to state 100
+    "**"                                           shift, and go to state 101
+
+    $default  reduce using rule 90 (step)
+
+
+State 222
+
+  112 formal_parameters: error vars "," formal_parameters •
+
+    $default  reduce using rule 112 (formal_parameters)
+
+
+State 223
+
+  113 formal_parameters: type error "," formal_parameters •
+
+    $default  reduce using rule 113 (formal_parameters)
+
+
+State 224
+
+  114 formal_parameters: type vars error formal_parameters •
+
+    $default  reduce using rule 114 (formal_parameters)
+
+
+State 225
+
+  112 formal_parameters: error • vars "," formal_parameters
+  115                  | type vars "," error •
+  117                  | error • vars
+
+    "id"  shift, and go to state 70
+
+    $default  reduce using rule 115 (formal_parameters)
+
+    vars            go to state 192
+    undef_variable  go to state 72
+
+
+State 226
+
+  111 formal_parameters: type vars "," formal_parameters •
+
+    $default  reduce using rule 111 (formal_parameters)
+
+
+State 227
+
+   40 complex_constant: "[" "rconst" ":" sign "rconst" • "]"
+
+    "]"  shift, and go to state 230
+
+
+State 228
+
+  101 tail: "else" body • "endif"
+
+    "endif"  shift, and go to state 231
+
+
+State 229
+
+   80 if_statement: "if" "(" expression ")" label "," label "," label •
+
+    $default  reduce using rule 80 (if_statement)
+
+
+State 230
+
+   40 complex_constant: "[" "rconst" ":" sign "rconst" "]" •
+
+    $default  reduce using rule 40 (complex_constant)
+
+
+State 231
+
+  101 tail: "else" body "endif" •
+
+    $default  reduce using rule 101 (tail)
